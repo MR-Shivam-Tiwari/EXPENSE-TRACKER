@@ -11,8 +11,13 @@ const MONGODB_URI = process.env.MONGODB_URI;
 app.use(cors());
 app.use(express.json());
 
-// Database Setup
-mongoose.connect(MONGODB_URI)
+// Database Setup - Optimized for Vercel serverless
+mongoose.connect(MONGODB_URI, {
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+  maxPoolSize: 10, // Maintain up to 10 socket connections
+  minPoolSize: 2, // Maintain minimum 2 connections
+})
   .then(() => console.log('Connected to MongoDB Atlas'))
   .catch(err => console.error('Error connecting to MongoDB Atlas:', err));
 
