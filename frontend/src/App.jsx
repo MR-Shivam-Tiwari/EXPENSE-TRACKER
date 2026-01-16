@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 import './App.css'
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1'];
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 function App() {
   const [expenses, setExpenses] = useState([]);
@@ -26,7 +27,7 @@ function App() {
   const fetchExpenses = useCallback(async () => {
     setLoading(true);
     try {
-      let url = '/expenses?';
+      let url = `${API_URL}/expenses?`;
       if (filterCategory) url += `category=${encodeURIComponent(filterCategory)}&`;
       if (sortBy) url += `sort=${encodeURIComponent(sortBy)}`;
 
@@ -58,7 +59,7 @@ function App() {
     }
 
     try {
-      const res = await fetch('/expenses', {
+      const res = await fetch(`${API_URL}/expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -100,7 +101,7 @@ function App() {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this expense?")) return;
     try {
-      await fetch(`/expenses/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' });
       setExpenses(prev => prev.filter(exp => exp.id !== id));
     } catch (err) {
       alert("Failed to delete");
