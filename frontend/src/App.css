@@ -28,31 +28,88 @@ body {
   background-color: var(--bg-color);
   color: var(--text-main);
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
   padding: 40px 20px;
 }
 
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 95%;
+  /* Increased from 1600px to use more screen real estate */
+  padding: 0 40px;
+  /* More padding on large screens */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  /* Increased gap */
+}
+
+.top-section {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 400px minmax(0, 1fr);
+  /* 400px fixed form, rest chart */
+  gap: 32px;
+  align-items: stretch;
+}
+
+.bottom-section {
+  display: flex;
+  flex-direction: column;
   gap: 24px;
-  align-items: start;
+}
+
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 550px;
+  /* Slightly taller */
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+}
+
+.summary-header h2 {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.total-balance {
+  text-align: right;
+}
+
+.total-balance span {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.total-balance h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--primary);
+  font-weight: 700;
 }
 
 /* Full width header spanning both columns */
 h1 {
   grid-column: 1 / -1;
   text-align: center;
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 10px;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
   color: var(--text-main);
   background: none;
-  -webkit-text-fill-color: initial;
-  letter-spacing: -0.5px;
+  letter-spacing: -1px;
 }
 
 /* Card Styling - Clean & Minimal */
@@ -62,31 +119,33 @@ h1 {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 40px;
+  /* Increased internal padding */
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 /* Form Section (Sidebar) */
 .card h2 {
-  font-size: 1rem;
+  font-size: 1.1rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   color: var(--text-muted);
-  margin-bottom: 20px;
+  margin-bottom: 32px;
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 10px;
+  padding-bottom: 16px;
+  font-weight: 700;
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .form-group label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -97,9 +156,10 @@ h1 {
   background: var(--input-bg);
   border: 1px solid var(--border-color);
   color: var(--text-main);
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  padding: 16px 20px;
+  /* Larger touch targets */
+  border-radius: 10px;
+  font-size: 1rem;
   transition: all 0.2s ease;
   font-family: inherit;
 }
@@ -113,23 +173,24 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .form-group select:focus {
   border-color: var(--primary);
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 button {
   width: 100%;
-  padding: 12px;
+  padding: 16px;
   background-color: var(--primary);
   background-image: none;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
   text-transform: uppercase;
   letter-spacing: 1px;
+  margin-top: 8px;
 }
 
 button:hover {
@@ -159,8 +220,8 @@ button:hover {
 /* Controls & Filters - Compact layout */
 .controls {
   display: flex;
-  gap: 16px;
-  padding: 16px;
+  gap: 24px;
+  padding: 24px;
   align-items: center;
 }
 
@@ -179,9 +240,9 @@ button:hover {
   background: var(--input-bg);
   border: 1px solid var(--border-color);
   color: var(--text-main);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
 }
 
 .control-group input:focus,
@@ -215,12 +276,16 @@ button:hover {
 /* List / Table */
 .list {
   padding: 0;
-  overflow: hidden;
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px;
+  /* Ensure table doesn't squash too much */
 }
 
 thead {
@@ -230,17 +295,17 @@ thead {
 
 th {
   text-align: left;
-  padding: 12px 16px;
-  font-size: 0.7rem;
-  font-weight: 600;
+  padding: 20px 24px;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
   color: var(--text-muted);
   letter-spacing: 0.5px;
 }
 
 td {
-  padding: 12px 16px;
-  font-size: 0.85rem;
+  padding: 20px 24px;
+  font-size: 0.95rem;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-main);
 }
@@ -254,12 +319,59 @@ tr:hover td {
 }
 
 /* Mobile Response */
-@media (max-width: 700px) {
+@media (max-width: 1024px) {
   .container {
-    grid-template-columns: 1fr;
+    padding: 0 24px;
+    max-width: 100%;
   }
 
+  .top-section {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .chart-card {
+    min-height: 400px;
+    /* Smaller chart on tablets/mobile when stacked */
+  }
+}
+
+@media (max-width: 600px) {
   .controls {
     flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  body {
+    padding: 20px 0;
+    /* Remove horizontal body padding on mobile for full width look */
+  }
+
+  .container {
+    gap: 20px;
+    padding: 0 16px;
+  }
+
+  .card,
+  .controls {
+    padding: 20px;
+  }
+
+  .list {
+    border-radius: 0;
+    /* Full edge on mobile maybe? kept radius for now but simple */
+    border-left: none;
+    border-right: none;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+
+  th,
+  td {
+    padding: 16px;
   }
 }

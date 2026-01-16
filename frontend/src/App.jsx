@@ -137,92 +137,101 @@ function App() {
 
       {error && <div className="error">{error}</div>}
 
-      <div className="card">
-        <h2>New Entry</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Description</label>
-            <input
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder="e.g. Lunch"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Amount</label>
-            <input
-              type="number"
-              step="0.01"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder="0.00"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Category</label>
-            <input
-              value={category}
-              onChange={e => setCategory(e.target.value)}
-              placeholder="e.g. Food"
-              required
-              list="category-suggestions"
-            />
-            <datalist id="category-suggestions">
-              <option value="Food" />
-              <option value="Transport" />
-              <option value="Utilities" />
-              <option value="Entertainment" />
-            </datalist>
-          </div>
-          <div className="form-group">
-            <label>Date</label>
-            <input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Saving...' : 'Add Expense'}
-          </button>
-        </form>
-      </div>
-
-      <div className="main-content">
-        <div className="summary">
-          <span>Total Balance</span>
-          <h3>₹{totalAmount.toFixed(2)}</h3>
+      <div className="top-section">
+        <div className="card form-card">
+          <h2>New Entry</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Description</label>
+              <input
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder="e.g. Lunch"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Amount</label>
+              <input
+                type="number"
+                step="0.01"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                placeholder="0.00"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Category</label>
+              <input
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                placeholder="e.g. Food"
+                required
+                list="category-suggestions"
+              />
+              <datalist id="category-suggestions">
+                <option value="Food" />
+                <option value="Transport" />
+                <option value="Utilities" />
+                <option value="Entertainment" />
+              </datalist>
+            </div>
+            <div className="form-group">
+              <label>Date</label>
+              <input
+                type="date"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Saving...' : 'Add Expense'}
+            </button>
+          </form>
         </div>
 
-        {/* Chart Section */}
-        {categoryData.length > 0 && (
-          <div className="card" style={{ height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <h2 style={{ width: '100%' }}>Spending Overview</h2>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `₹${value.toFixed(2)}`} />
-                <Legend layout="horizontal" verticalAlign="bottom" align="center" />
-              </PieChart>
-            </ResponsiveContainer>
+        <div className="card chart-card">
+          <div className="summary-header">
+            <h2>Overview</h2>
+            <div className="total-balance">
+              <span>Total Balance</span>
+              <h3>₹{totalAmount.toFixed(2)}</h3>
+            </div>
           </div>
-        )}
 
+          <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+            {categoryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="60%"
+                    outerRadius="80%"
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `₹${value.toFixed(2)}`} />
+                  <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                No data to display
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="bottom-section">
         <div className="controls">
           <div className="control-group">
             <input
