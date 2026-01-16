@@ -8,7 +8,14 @@ const PORT = process.env.PORT || 3001;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173', // Local development
+    'http://localhost:3000', // Alternative local port
+    'https://expense-tracker-1mdi.vercel.app' // Deployed frontend
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Database Setup - Optimized for Vercel serverless
