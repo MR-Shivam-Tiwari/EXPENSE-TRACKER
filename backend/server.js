@@ -48,7 +48,7 @@ app.get('/expenses', async (req, res) => {
   const filter = {};
 
   if (category) {
-    filter.category = category;
+    filter.category = { $regex: new RegExp(category, 'i') }; // Case-insensitive search
   }
 
   const sortOptions = {};

@@ -128,6 +128,16 @@ h1 {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+/* Date input icon styling */
+.form-group input[type="date"] {
+  color-scheme: light;
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0);
+  cursor: pointer;
+}
+
 button {
   width: 100%;
   padding: 14px;
