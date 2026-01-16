@@ -19,7 +19,6 @@ function App() {
   const [date, setDate] = useState('');
   const [idempotencyKey, setIdempotencyKey] = useState('');
 
-  // Generate a key on initial load or after successful submit
   useEffect(() => {
     setIdempotencyKey(uuidv4());
   }, []);
@@ -34,9 +33,10 @@ function App() {
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch expenses');
       const data = await res.json();
-      setExpenses(data.data);
+      setExpenses(data.data || []);
       setError(null);
     } catch (err) {
+      console.log(err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -51,7 +51,6 @@ function App() {
     e.preventDefault();
     setLoading(true);
 
-    // Basic validation
     if (!amount || !category || !description || !date) {
       alert("Please fill in all fields");
       setLoading(false);
@@ -61,9 +60,7 @@ function App() {
     try {
       const res = await fetch('/expenses', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: parseFloat(amount),
           category,
@@ -75,16 +72,13 @@ function App() {
 
       if (!res.ok) throw new Error('Failed to create expense');
 
-      // Success
       setAmount('');
       setCategory('');
       setDescription('');
       setDate('');
-      setIdempotencyKey(uuidv4()); // Rotate key for next new expense
-      fetchExpenses(); // Refresh list
+      setIdempotencyKey(uuidv4());
+      fetchExpenses();
     } catch (err) {
-      setError(err.message);
-      // Do NOT rotate idempotency key here, so user can retry!
       alert("Failed to save. Please try again.");
     } finally {
       setLoading(false);
@@ -93,31 +87,23 @@ function App() {
 
   const totalAmount = expenses.reduce((sum, item) => sum + item.amount, 0);
 
-  // Prepare chart data
   const categoryData = useMemo(() => {
     const data = {};
     expenses.forEach(exp => {
-      if (data[exp.category]) {
-        data[exp.category] += exp.amount;
-      } else {
-        data[exp.category] = exp.amount;
-      }
+      const cat = exp.category || 'Other';
+      if (data[cat]) data[cat] += exp.amount;
+      else data[cat] = exp.amount;
     });
     return Object.keys(data).map(key => ({ name: key, value: data[key] }));
   }, [expenses]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this expense?")) return;
-
+    if (!window.confirm("Delete this expense?")) return;
     try {
-      const res = await fetch(`/expenses/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete expense');
-
-      // Update state locally
+      await fetch(`/expenses/${id}`, { method: 'DELETE' });
       setExpenses(prev => prev.filter(exp => exp.id !== id));
-      fetchExpenses(); // Optional: sync with backend to be safe
     } catch (err) {
-      alert(err.message);
+      alert("Failed to delete");
     }
   };
 
@@ -125,9 +111,7 @@ function App() {
     if (!dateString) return '';
     const d = new Date(dateString);
     return isNaN(d.getTime()) ? dateString : d.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+      year: 'numeric', month: 'short', day: 'numeric'
     });
   };
 
@@ -135,60 +119,32 @@ function App() {
     <div className="container">
       <h1>EXPENSE TRACKER</h1>
 
-      {error && <div className="error">{error}</div>}
+      {error && <div style={{ color: 'red', textAlign: 'center', marginBottom: '10px' }}>{error}</div>}
 
       <div className="top-section">
-        <div className="card form-card">
+        <div className="card">
           <h2>New Entry</h2>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Description</label>
-              <input
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="e.g. Lunch"
-                required
-              />
+              <input value={description} onChange={e => setDescription(e.target.value)} placeholder="e.g. Lunch" required />
             </div>
             <div className="form-group">
               <label>Amount</label>
-              <input
-                type="number"
-                step="0.01"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-                placeholder="0.00"
-                required
-              />
+              <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" required />
             </div>
             <div className="form-group">
               <label>Category</label>
-              <input
-                value={category}
-                onChange={e => setCategory(e.target.value)}
-                placeholder="e.g. Food"
-                required
-                list="category-suggestions"
-              />
-              <datalist id="category-suggestions">
-                <option value="Food" />
-                <option value="Transport" />
-                <option value="Utilities" />
-                <option value="Entertainment" />
+              <input value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Food" list="cats" required />
+              <datalist id="cats">
+                <option value="Food" /><option value="Transport" /><option value="Utilities" /><option value="Entertainment" />
               </datalist>
             </div>
             <div className="form-group">
               <label>Date</label>
-              <input
-                type="date"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                required
-              />
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} required />
             </div>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : 'Add Expense'}
-            </button>
+            <button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Add Expense'}</button>
           </form>
         </div>
 
@@ -200,32 +156,19 @@ function App() {
               <h3>₹{totalAmount.toFixed(2)}</h3>
             </div>
           </div>
-
-          <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+          <div className="chart-wrapper">
             {categoryData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius="60%"
-                    outerRadius="80%"
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
+                  <Pie data={categoryData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                    {categoryData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip formatter={(value) => `₹${value.toFixed(2)}`} />
-                  <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+                  <Tooltip formatter={(val) => `₹${val.toFixed(2)}`} />
+                  <Legend verticalAlign="bottom" height={36} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-                No data to display
-              </div>
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>No data</div>
             )}
           </div>
         </div>
@@ -234,12 +177,7 @@ function App() {
       <div className="bottom-section">
         <div className="controls">
           <div className="control-group">
-            <input
-              value={filterCategory}
-              onChange={e => setFilterCategory(e.target.value)}
-              placeholder="Filter by Category..."
-              list="category-suggestions"
-            />
+            <input value={filterCategory} onChange={e => setFilterCategory(e.target.value)} placeholder="Filter Category..." />
           </div>
           <div className="control-group">
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
@@ -250,60 +188,27 @@ function App() {
         </div>
 
         <div className="list">
-          {loading && expenses.length === 0 ? (
-            <p style={{ padding: '20px' }}>Loading...</p>
-          ) : expenses.length === 0 ? (
-            <p style={{ padding: '20px', color: '#94a3b8' }}>No expenses recorded yet.</p>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Desc</th>
-                  <th>Category</th>
-                  <th>Amount</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {expenses.map(exp => (
-                  <tr key={exp.id}>
-                    <td style={{ color: '#64748b', whiteSpace: 'nowrap' }}>{formatDate(exp.date)}</td>
-                    <td>{exp.description}</td>
-                    <td>
-                      <span style={{
-                        background: '#eff6ff',
-                        color: '#3b82f6',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '0.75rem',
-                        fontWeight: '500'
-                      }}>
-                        {exp.category}
-                      </span>
-                    </td>
-                    <td style={{ fontWeight: '700', color: '#1e293b' }}>₹{exp.amount.toFixed(2)}</td>
-                    <td>
-                      <button
-                        onClick={() => handleDelete(exp.id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#ef4444',
-                          cursor: 'pointer',
-                          padding: '4px',
-                          fontSize: '0.8rem',
-                          textTransform: 'uppercase',
-                          fontWeight: '600'
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </td>
+          {expenses.length === 0 ? <div style={{ padding: '24px', textAlign: 'center', color: '#999' }}>No expenses found.</div> : (
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Desc</th><th>Category</th><th>Amount</th><th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {expenses.map(exp => (
+                    <tr key={exp.id}>
+                      <td style={{ whiteSpace: 'nowrap' }}>{formatDate(exp.date)}</td>
+                      <td>{exp.description}</td>
+                      <td><span className="category-tag">{exp.category}</span></td>
+                      <td style={{ fontWeight: 'bold' }}>₹{exp.amount.toFixed(2)}</td>
+                      <td><button className="delete-btn" onClick={() => handleDelete(exp.id)}>Delete</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
