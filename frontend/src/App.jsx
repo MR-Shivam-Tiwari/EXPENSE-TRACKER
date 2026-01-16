@@ -96,6 +96,21 @@ function App() {
   // Requirement says "User can filter expenses by category". 
   // Let's assume standard categories or just text input. Text input is flexible.
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this expense?")) return;
+
+    try {
+      const res = await fetch(`/expenses/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete expense');
+
+      // Update state locally
+      setExpenses(prev => prev.filter(exp => exp.id !== id));
+      fetchExpenses(); // Optional: sync with backend to be safe
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div className="container">
       <h1>EXPENSE TRACKER</h1>
@@ -168,6 +183,7 @@ function App() {
               value={filterCategory}
               onChange={e => setFilterCategory(e.target.value)}
               placeholder="Filter by Category..."
+              list="category-suggestions"
             />
           </div>
           <div className="control-group">
@@ -191,6 +207,7 @@ function App() {
                   <th>Desc</th>
                   <th>Category</th>
                   <th>Amount</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -211,6 +228,23 @@ function App() {
                       </span>
                     </td>
                     <td style={{ fontWeight: '700', color: '#1e293b' }}>₹{exp.amount.toFixed(2)}</td>
+                    <td>
+                      <button
+                        onClick={() => handleDelete(exp.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          fontSize: '0.8rem',
+                          textTransform: 'uppercase',
+                          fontWeight: '600'
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -104,6 +104,11 @@ h1 {
   font-family: inherit;
 }
 
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: brightness(0);
+}
+
 .form-group input:focus,
 .form-group select:focus {
   border-color: var(--primary);
