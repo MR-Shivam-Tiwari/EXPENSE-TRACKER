@@ -1,6 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { v4 as uuidv4 } from 'uuid';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import './App.css'
+
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1'];
 
 function App() {
   const [expenses, setExpenses] = useState([]);
@@ -90,11 +93,18 @@ function App() {
 
   const totalAmount = expenses.reduce((sum, item) => sum + item.amount, 0);
 
-  // Derive unique categories for filter dropdown
-  // We can't easily get *all* categories from backend efficiently without a separate endpoint, 
-  // but for this assignment we can just let user type or preset some. 
-  // Requirement says "User can filter expenses by category". 
-  // Let's assume standard categories or just text input. Text input is flexible.
+  // Prepare chart data
+  const categoryData = useMemo(() => {
+    const data = {};
+    expenses.forEach(exp => {
+      if (data[exp.category]) {
+        data[exp.category] += exp.amount;
+      } else {
+        data[exp.category] = exp.amount;
+      }
+    });
+    return Object.keys(data).map(key => ({ name: key, value: data[key] }));
+  }, [expenses]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this expense?")) return;
@@ -109,6 +119,16 @@ function App() {
     } catch (err) {
       alert(err.message);
     }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    return isNaN(d.getTime()) ? dateString : d.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -177,6 +197,32 @@ function App() {
           <h3>₹{totalAmount.toFixed(2)}</h3>
         </div>
 
+        {/* Chart Section */}
+        {categoryData.length > 0 && (
+          <div className="card" style={{ height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h2 style={{ width: '100%' }}>Spending Overview</h2>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `₹${value.toFixed(2)}`} />
+                <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
         <div className="controls">
           <div className="control-group">
             <input
@@ -196,7 +242,7 @@ function App() {
 
         <div className="list">
           {loading && expenses.length === 0 ? (
-            <p>Loading...</p>
+            <p style={{ padding: '20px' }}>Loading...</p>
           ) : expenses.length === 0 ? (
             <p style={{ padding: '20px', color: '#94a3b8' }}>No expenses recorded yet.</p>
           ) : (
@@ -213,7 +259,7 @@ function App() {
               <tbody>
                 {expenses.map(exp => (
                   <tr key={exp.id}>
-                    <td style={{ color: '#64748b' }}>{exp.date}</td>
+                    <td style={{ color: '#64748b', whiteSpace: 'nowrap' }}>{formatDate(exp.date)}</td>
                     <td>{exp.description}</td>
                     <td>
                       <span style={{
